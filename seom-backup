@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -x
+
+FPS=""
+OPT=""
+
+if ! which mencoder &> /dev/null; then
+	echo "You need to install mencoder"
+	exit -1
+fi
+
+if [ ${#} -ne 2 ]; then
+	echo "Usage: $ ${0} [src dir] [dst dir]"
+	exit 1;
+fi
+
+if [ ! -d ${1} -o ! -d ${2} ]; then
+	echo "Source or destination directories don't exist"
+	exit 1
+fi
+
+if [ -e "$HOME/.seom/backup" ]; then
+	source "$HOME/.seom/backup"
+fi
+
+files=$(ls ${1}/*.seom 2> /dev/null)
+for src in ${files}; do
+	tmp=${src##*/}
+
+	tmp=$(mktemp -p ${1} ${tmp}-XXXXXX)
+	rm ${tmp}
+	mv -f "${src}" "${tmp}" # FIXME: don't overwrite existing files
+done
+
+files=$(ls ${TEMP}/*.seom-?????? 2> /dev/null)
+for src in ${files}; do
+	tmp=${src##*/}
+	dst="${2}/${tmp%%.seom-??????}--$(stat -c %y ${src} | sed 's#\..*##' | sed 's# #--#').avi"
+	
+	echo -n "Processing '${src}' "
+
+	unset int
+	trap 'int=1' SIGINT
+	if [ "${FPS}" = "" ]; then
+		seom-filter ${src} | mencoder - -ovc xvid -xvidencopts bitrate=1200 -o ${dst} ${OPT} &> /dev/null
+	else
+		seom-filter ${src} -r ${FPS} | mencoder - -ovc xvid -xvidencopts bitrate=1200 -o ${dst} ${OPT} &> /dev/null
+	fi
+
+	if [ ${?} -eq 0 ] && [ -z ${int} ]; then
+		rm ${src}
+		echo "..."
+	else
+		rm ${dst}
+		echo "... failed"
+	fi
+done
