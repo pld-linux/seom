@@ -1,58 +1,53 @@
-#!/bin/bash
+#!/bin/sh
 
-set -x
+KDE=0
 
-FPS=""
-OPT=""
+[ -x /usr/bin/kdialog ] && KDE=1
 
-if ! which mencoder &> /dev/null; then
-	echo "You need to install mencoder"
-	exit -1
-fi
-
-if [ ${#} -ne 2 ]; then
-	echo "Usage: $ ${0} [src dir] [dst dir]"
-	exit 1;
-fi
-
-if [ ! -d ${1} -o ! -d ${2} ]; then
-	echo "Source or destination directories don't exist"
+if [ ! -x /usr/bin/mencoder ]; then
+	[ $KDE -eq 1 ] && kdialog --title "No mencoder installed" --passivepopup "Uncompressed video is in the $1 directory." 10 &
+	echo "No mencoder installed"
 	exit 1
 fi
 
-if [ -e "$HOME/.seom/backup" ]; then
-	source "$HOME/.seom/backup"
+if [ ${#} -ne 2 ]; then
+	echo "Usage: $0 [src dir] [dst dir]"
+	exit 2
 fi
 
-files=$(ls ${1}/*.seom 2> /dev/null)
-for src in ${files}; do
-	tmp=${src##*/}
+if [ ! -d "$1" -o ! -d "$2" ]; then
+	echo "Source or destination directory doesn't exist."
+	exit 3
+fi
 
-	tmp=$(mktemp -p ${1} ${tmp}-XXXXXX)
-	rm ${tmp}
-	mv -f "${src}" "${tmp}" # FIXME: don't overwrite existing files
-done
+filename="$(ls $1/*.seom | head -1 2> /dev/null)"
 
-files=$(ls ${TEMP}/*.seom-?????? 2> /dev/null)
-for src in ${files}; do
-	tmp=${src##*/}
-	dst="${2}/${tmp%%.seom-??????}--$(stat -c %y ${src} | sed 's#\..*##' | sed 's# #--#').avi"
-	
-	echo -n "Processing '${src}' "
+if [ ! -e "$filename" ]; then
+	echo "No .seom files in the $1 directory."
+	exit 4
+fi
 
-	unset int
-	trap 'int=1' SIGINT
-	if [ "${FPS}" = "" ]; then
-		seom-filter ${src} | mencoder - -ovc xvid -xvidencopts bitrate=1200 -o ${dst} ${OPT} &> /dev/null
-	else
-		seom-filter ${src} -r ${FPS} | mencoder - -ovc xvid -xvidencopts bitrate=1200 -o ${dst} ${OPT} &> /dev/null
-	fi
+tmpfn=$(mktemp $filename-$$-$RANDOM-XXXXXX)
 
-	if [ ${?} -eq 0 ] && [ -z ${int} ]; then
-		rm ${src}
-		echo "..."
-	else
-		rm ${dst}
-		echo "... failed"
-	fi
-done
+mv -f "$filename" "$tmpfn"
+
+[ $KDE -eq 1 ] && kdialog --passivepopup "Encoding video..." 3 &
+
+dest="$2/$(basename $filename .seom)-$(date "+%y-%m-%d %H:%M:%S").avi"
+
+seom-filter "$tmpfn" | mencoder - -ovc xvid -xvidencopts bitrate=1200 -o "$dest" ${OPT} 2>&1 >/dev/null
+
+if [ $? -eq 0 ]; then
+	[ $KDE -eq 1 ] && kdialog --title "Encoding successfull" --passivepopup "$dest done." 10 &
+	echo "Encoding successfull."
+	echo "$dest done."
+	rm -f "$tmpfn"
+
+	exit 0
+else
+	[ $KDE -eq 1 ] && kdialog --title "Encoding failed" --passivepopup "Uncompressed video is in the $1 directory." 10 &
+	echo "Encoding failed."
+	rm -f "$dest"
+
+	exit 5
+fi
