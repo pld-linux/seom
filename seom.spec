@@ -7,6 +7,7 @@ License:	GPL (?)
 Group:		Libraries
 Source0:	%{name}-%{version}.tar.bz2
 # Source0-md5:	84b07eb7ccfbc3628d6c23fe11d17d32
+Source1:	%{name}-backup
 URL:		http://neopsis.com/projects/seom/
 BuildRequires:	OpenGL-devel
 BuildRequires:	xorg-lib-libXv-devel
@@ -39,6 +40,7 @@ programistów u¿ywaj±cych biblioteki seom.
 Summary:	seom utilities
 Summary(pl):	Narzêdzia seom
 Group:		Applications
+Suggests:	mencoder
 
 %description utils
 seom utilities.
@@ -64,6 +66,8 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 	LIBDIR="%{_lib}"
+
+install %{SOURCE1} $RPM_BUILD_ROOT%{_bindir}/seom-backup
 
 %clean
 rm -rf $RPM_BUILD_ROOT
