@@ -1,5 +1,5 @@
 Summary:	seom video capturing library
-Summary(pl):	Biblioteka przechwytywania video seom
+Summary(pl.UTF-8):   Biblioteka przechwytywania video seom
 Name:		seom
 Version:	20070203
 Release:	1
@@ -19,12 +19,12 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 seom video capturing library.
 
-%description -l pl
+%description -l pl.UTF-8
 Biblioteka przechwytywania video seom.
 
 %package devel
 Summary:	Header files for seom
-Summary(pl):	Pliki na³ówkowe seom
+Summary(pl.UTF-8):   Pliki naÅ‚Ã³wkowe seom
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
@@ -32,21 +32,21 @@ Requires:	%{name} = %{version}-%{release}
 The header files are only needed for development of programs using the
 seom library.
 
-%description devel -l pl
-W pakiecie tym znajduj± siê pliki nag³ówkowe, przeznaczone dla
-programistów u¿ywaj±cych biblioteki seom.
+%description devel -l pl.UTF-8
+W pakiecie tym znajdujÄ… siÄ™ pliki nagÅ‚Ã³wkowe, przeznaczone dla
+programistÃ³w uÅ¼ywajÄ…cych biblioteki seom.
 
 %package utils
 Summary:	seom utilities
-Summary(pl):	Narzêdzia seom
+Summary(pl.UTF-8):   NarzÄ™dzia seom
 Group:		Applications
 Suggests:	mencoder
 
 %description utils
 seom utilities.
 
-%description utils -l pl
-Narzêdzia seom.
+%description utils -l pl.UTF-8
+NarzÄ™dzia seom.
 
 %prep
 %setup -q
